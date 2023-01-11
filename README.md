@@ -1,10 +1,16 @@
 # Stackoverflow Case Study
 
-This is a case study on implementing StackOverflow core features as an REST API. Primary purpose of this case study is an learning activity on backend engineering and database tuning concerns (What are the problems, What are the solutions available for those problems, ) that gonna face while implementing the solution. This will cover below points.
+This is a case study on implementing StackOverflow core features as an REST API. Primary purpose of this case study is an learning activity on backend engineering and database tuning concerns that gonna face while implementing the solution. The [Milestone 1](https://github.com/DHJayasinghe/stackoverflow-casestudy/milestone/1) is to cover 4 core features of StackOverflow as while documenting below concerns.
 
 1. What are the problems faced or problems that could face?
 2. What are the solutions available for these problems?
 3. Why pick certain solution over other for that particular problem?
+
+### Rules on Completing the features
+1. Each feature should include **at least one technical concern**.
+2. Those technical concerns must have **more than 1 solutions** as findings.
+3. All technical concerns and solution must backed by a test case (Unit Testing/Integration Testing).
+4. All test cases must be well documented in-order to run by someother developer without help.
 
 ### Core features that gonna cover
 
