@@ -1,14 +1,22 @@
-# stackoverflow-casestudy
-This is a case study on implementing StackOverflow main features as an REST API.
+# Stackoverflow Case Study
 
-Core-Features Gonna Implement
+This is a case study on implementing StackOverflow core features as an REST API. Primary purpose of this case study is an learning activity on backend engineering and database tuning concerns (What are the problems, What are the solutions available for those problems, ) that gonna face while implementing the solution. This will cover below points.
 
-1. Search for Questions - Users should be able to search related Questions by enterings tags (Ex: SQL, C#, etc) in search bar.
-![image](https://user-images.githubusercontent.com/26274468/211811461-24d93cbf-edc0-456c-91de-4fb3fca149c6.png)
-2. Questions Filters - Users should be able to filter searched Questions by selecting filter (Newest, Active, Bountied, Unanswered)
-![image](https://user-images.githubusercontent.com/26274468/211811553-1d6f1851-dac6-4d43-810c-874a17e47b7e.png)
-3. View Question & Answers - Users should be able to select a specific questions and view the full informations (Comments, Answers & Votes)
-![image](https://user-images.githubusercontent.com/26274468/211812939-36339f78-5656-4e63-992a-6415d2245ec5.png)
-![image](https://user-images.githubusercontent.com/26274468/211813039-adfa9e9a-8a0f-43a1-bbac-9fba31257d9b.png)
-![image](https://user-images.githubusercontent.com/26274468/211813172-769bc47f-d748-46b0-a2e7-47fd88ba2370.png)
+1. What are the problems faced or problems that could face?
+2. What are the solutions available for these problems?
+3. Why pick certain solution over other for that particular problem?
 
+### Core features that gonna cover
+
+1. Question Search Bar
+2. Question Filters
+3. Question/Answers Page
+4. Voting Option
+
+### Technologies that gonna use
+
+1. ASP.NET CORE 6.0 Minimal APIs
+2. C#
+3. Docker
+4. SQL Server 2022
+5. Dapper ORM
