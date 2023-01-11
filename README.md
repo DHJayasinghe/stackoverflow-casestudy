@@ -7,9 +7,10 @@ This is a case study on implementing StackOverflow core features as an REST API.
 3. Why pick certain solution over other for that particular problem?
 
 ### Rules on Completing the features
-1. Each feature should include **at least one technical concern**.
-2. Those technical concerns must have **more than 1 solutions** as findings.
-3. All technical concerns and solution must backed by a test case (Unit Testing/Integration Testing).
+1. Each feature should contains a descriptive information about the feature after analyzing original stackoverflow site. Only the basic functionalities required.
+1. Each feature should include **at least one technical concern** on implementing the feature.
+2. Those technical concerns must have **more than 1 solutions** as findings. Findings must have references links to support from trusted resources. 
+3. All technical concerns and solutions must backed by a test case (Unit Testing/Integration Testing). Which describes the analysis.
 4. All test cases must be well documented in-order to run by someother developer without help.
 
 ### Core features that gonna cover
