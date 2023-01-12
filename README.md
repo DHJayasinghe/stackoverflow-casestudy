@@ -27,3 +27,6 @@ This is a case study on implementing StackOverflow core features as an REST API.
 3. Docker
 4. SQL Server 2022
 5. Dapper ORM
+
+### Development Setup
+1. Download StackOverflow Data Dump - 10GB after Extract [1GB download size](https://downloads.brentozar.com/StackOverflow2010.7z)
