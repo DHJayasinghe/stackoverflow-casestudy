@@ -35,3 +35,4 @@ This is a case study on implementing StackOverflow core features as an REST API.
 
 ## References
 1. [Stack Overflow: Technical Deconstruction](https://nickcraver.com/blog/2016/02/03/stack-overflow-a-technical-deconstruction)
+2. [Database Schema Documentation](https://meta.stackexchange.com/questions/2677/database-schema-documentation-for-the-public-data-dump-and-sede)
