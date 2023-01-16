@@ -29,4 +29,10 @@ This is a case study on implementing StackOverflow core features as an REST API.
 5. Dapper ORM
 
 ### Development Setup
-1. Download StackOverflow Data Dump - 10GB after Extract [1GB download size](https://downloads.brentozar.com/StackOverflow2010.7z)
+1. [StackOverflow Data Dump](https://downloads.brentozar.com/StackOverflow2010.7z) - 10GB after Extract [1GB download size]
+2. [Entity Relationship Diagram](https://drive.google.com/file/d/1M9nOuATSkyHgoMXHfQPUiavpDnoHQnQp/view?usp=sharing) 
+
+
+## References
+1. [Stack Overflow: Technical Deconstruction](https://nickcraver.com/blog/2016/02/03/stack-overflow-a-technical-deconstruction)
+2. [Database Schema Documentation](https://meta.stackexchange.com/questions/2677/database-schema-documentation-for-the-public-data-dump-and-sede)
