@@ -43,7 +43,7 @@ static async Task<PaginationResult<Question>> GetQuestionsAsync(
         OFFSET({start}) ROWS FETCH NEXT({pageSize}) ROWS ONLY"
     );
     return new PaginationResult<Question>()
-    {
+{
         Data = result,
         TotalRecords = totalRecords
     };
