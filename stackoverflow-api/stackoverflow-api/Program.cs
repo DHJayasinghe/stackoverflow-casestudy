@@ -20,12 +20,10 @@ static async Task<PaginationResult<Question>> GetQuestionsAsync(
     int start = 0
 )
 {
-    string predicate = !string.IsNullOrEmpty(searchTerm) ? $" WHERE T.TagName = '{searchTerm}'" : "";
-    var totalRecords = (await dbQueryRepo.QueryAsync<int>(@"SELECT COUNT(1) 
-        FROM dbo.Posts P INNER JOIN dbo.PostTags PT
-        ON P.Id = PT.PostId INNER JOIN dbo.Tags T
-        ON PT.TagId = T.Id" + predicate)).First();
-    var result = await dbQueryRepo.QueryAsync<Question>(@"SELECT
+    string predicate = !string.IsNullOrEmpty(searchTerm) ? $" WHERE TagName = '{searchTerm}'" : "";
+    var totalCountQuery = @$"SELECT COUNT(1) FROM dbo.vwPostTags with(noexpand) {predicate}";
+    var totalRecords = (await dbQueryRepo.QueryAsync<int>(totalCountQuery)).First();
+    var query = @$"SELECT
             P.Id,
             P.Title,
             Substring(P.Body, 1, 200)[Description],
@@ -34,14 +32,14 @@ static async Task<PaginationResult<Question>> GetQuestionsAsync(
             P.OwnerUserId AskedById,
             Own.DisplayName AskedByDisplayName,
             1 Votes
-        FROM dbo.Posts P INNER JOIN dbo.PostTags PT
-        ON P.Id = PT.PostId INNER JOIN dbo.Tags T
-        ON PT.TagId = T.Id INNER JOIN dbo.Users Own
-        ON P.OwnerUserId = Own.Id 
-        " + predicate +
-        @$"ORDER BY P.CreationDate DESC
-        OFFSET({start}) ROWS FETCH NEXT({pageSize}) ROWS ONLY"
-    );
+        FROM dbo.Posts P INNER JOIN(SELECT PostId, TagId, CreationDate
+        FROM dbo.vwPostTags with(noexpand) {predicate}
+        ORDER BY CreationDate
+        OFFSET({start}) ROWS FETCH NEXT({pageSize}) ROWS ONLY) PT
+        ON P.Id = PT.PostId INNER JOIN dbo.Users Own
+        ON P.OwnerUserId = Own.Id";
+
+    var result = await dbQueryRepo.QueryAsync<Question>(query);
     return new PaginationResult<Question>()
 {
         Data = result,
