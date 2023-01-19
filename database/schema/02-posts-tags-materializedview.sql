@@ -36,3 +36,8 @@ CREATE NONCLUSTERED INDEX NIX_vwPostTags_TagName ON [dbo].[vwPostTags]
 )
 INCLUDE([CreationDate])
 GO
+
+IF EXISTS(SELECT * FROM sys.indexes WHERE name = 'Ix_Votes_PostId')
+DROP INDEX Ix_Votes_PostId ON [dbo].[Votes]
+CREATE NONCLUSTERED INDEX Ix_Votes_PostId ON Votes(PostId DESC)
+GO
