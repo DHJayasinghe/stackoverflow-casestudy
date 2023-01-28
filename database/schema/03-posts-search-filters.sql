@@ -136,7 +136,7 @@ CREATE UNIQUE CLUSTERED INDEX [CIX_vwPostTagsAndVoteTypes] ON [dbo].[vwPostTagsA
 GO
 
 
-CREATE NONCLUSTERED INDEX [NIX_vwPostTagsAndVoteTypes_CreationDate] ON [dbo].[vwPostTagsAndVoteTypes]
+CREATE NONCLUSTERED INDEX [NIX_vwPostTagsAndVoteTypes_LastActivityDate] ON [dbo].[vwPostTagsAndVoteTypes]
 (
 	[LastActivityDate] DESC
 )
