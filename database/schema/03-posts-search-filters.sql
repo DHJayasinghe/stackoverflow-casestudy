@@ -1,7 +1,7 @@
 USE [StackOverflow2010]
 GO
 
-CREATE OR ALTER ALTER   PROCEDURE [dbo].[sp_posts_search](
+CREATE OR ALTER  PROCEDURE [dbo].[sp_posts_search](
 	@Start int = 0,
 	@PageSize int = 10,
 	@SearchType varchar(100),
@@ -10,8 +10,13 @@ CREATE OR ALTER ALTER   PROCEDURE [dbo].[sp_posts_search](
 AS
 BEGIN
 	declare @dynamic_sql nvarchar(2000)
+	
 	declare @param_definition nvarchar(500)='@Start int, @PageSize int';  
 	declare @predicate nvarchar(1000)=CASE @Tags WHEN '' THEN '1=1' ELSE (SELECT STRING_AGG( CONCAT('Tags LIKE ''%',value,'%'''),' AND ') from string_split(@Tags,',')) END
+
+	declare @total_count_dynamic_sql nvarchar(2000)
+	declare @total_count int
+	SET @total_count_dynamic_sql = CONCAT('SELECT @total_count=COUNT(1) FROM dbo.Posts WHERE ', @predicate)
 
 	IF @SearchType = 'NEWEST'
 	BEGIN
@@ -25,7 +30,7 @@ BEGIN
 			Own.DisplayName AskedByDisplayName,
 			1 NoOfVotes
 		FROM dbo.Posts P INNER JOIN(SELECT Id AS PostId
-		FROM dbo.posts 
+		FROM dbo.Posts 
 		WHERE ', @predicate,' ',
 		'ORDER BY CreationDate DESC
 		OFFSET(@Start) ROWS FETCH NEXT(@PageSize) ROWS ONLY) PT
@@ -33,6 +38,7 @@ BEGIN
 		ON P.OwnerUserId = Own.Id')
 
 		EXEC sp_executesql @dynamic_sql, @param_definition, @Start=@Start, @PageSize=@PageSize
+		EXEC sp_executesql @total_count_dynamic_sql, N'@total_count int OUT', @total_count=@total_count OUT
 	END
 	ELSE IF @SearchType = 'ACTIVE'
 	BEGIN
@@ -46,7 +52,7 @@ BEGIN
 			Own.DisplayName AskedByDisplayName,
 			1 NoOfVotes
 		FROM dbo.Posts P INNER JOIN(SELECT Id AS PostId
-		FROM dbo.posts 
+		FROM dbo.Posts 
 		WHERE ', @predicate,' ',
 		'ORDER BY LastActivityDate DESC
 		OFFSET(@Start) ROWS FETCH NEXT(@PageSize) ROWS ONLY) PT
@@ -54,9 +60,11 @@ BEGIN
 		ON P.OwnerUserId = Own.Id')
 
 		EXEC sp_executesql @dynamic_sql, @param_definition, @Start=@Start, @PageSize=@PageSize
+		EXEC sp_executesql @total_count_dynamic_sql, N'@total_count int OUT', @total_count=@total_count OUT
 	END
 	ELSE IF @SearchType = 'UNANSWERED'
 	BEGIN
+		SET @total_count_dynamic_sql = CONCAT('SELECT @total_count=COUNT(1) FROM dbo.Posts WHERE ', @predicate,' AND AcceptedAnswerId IS NULL')
 		SET @dynamic_sql = CONCAT('SELECT
 			P.Id,
 			P.Title,
@@ -67,7 +75,7 @@ BEGIN
 			Own.DisplayName AskedByDisplayName,
 			1 NoOfVotes
 		FROM dbo.Posts P INNER JOIN (SELECT Id AS PostId
-		FROM dbo.posts 
+		FROM dbo.Posts 
 		WHERE ', @predicate,' AND AcceptedAnswerId IS NULL ',
 		'ORDER BY CreationDate DESC
 		OFFSET(@Start) ROWS FETCH NEXT(@PageSize) ROWS ONLY) PT
@@ -75,9 +83,11 @@ BEGIN
 		ON P.OwnerUserId = Own.Id')
 
 		EXEC sp_executesql @dynamic_sql, @param_definition, @Start=@Start, @PageSize=@PageSize
+		EXEC sp_executesql @total_count_dynamic_sql, N'@total_count int OUT', @total_count=@total_count OUT
 	END
 	ELSE IF @SearchType = 'BOUNTIED'
 	BEGIN
+		SET @total_count_dynamic_sql = CONCAT('SELECT @total_count=COUNT(1) FROM dbo.vwPostTagsAndVoteTypes WHERE ', @predicate,' AND VoteTypeId=8')
 		SET @dynamic_sql = CONCAT('SELECT
 			P.Id,
 			P.Title,
@@ -96,7 +106,10 @@ BEGIN
 		ON P.OwnerUserId = Own.Id')
 
 		EXEC sp_executesql @dynamic_sql, @param_definition, @Start=@Start, @PageSize=@PageSize
+		EXEC sp_executesql @total_count_dynamic_sql, N'@total_count int OUT', @total_count=@total_count OUT
 	END
+
+	SELECT @total_count
 END
 GO
 

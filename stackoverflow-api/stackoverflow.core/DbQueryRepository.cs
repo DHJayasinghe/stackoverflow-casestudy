@@ -19,25 +19,25 @@ public sealed class DbQueryRepository : IDbQueryRepository, IDisposable
         return (await conn.QueryAsync<TResult>(queryOrSpName, parameters, commandType: commandType, commandTimeout: (int)_defaultTimeout.TotalSeconds)).ToList();
     }
 
-    public async Task<IDictionary<string, object>> QueryAsync(string spName, object param = null, IEnumerable<MapItem> mapItems = null)
+    public async Task<IDictionary<string, object>> QueryAsync(string spName, object param = null, IEnumerable<OutputResultTranform> mapItems = null)
     {
         using IDbConnection conn = Connection;
-        var multi = await conn.QueryMultipleAsync(spName, param, commandType: CommandType.StoredProcedure, commandTimeout: (int)_defaultTimeout.TotalSeconds);
+        var result = await conn.QueryMultipleAsync(spName, param, commandType: CommandType.StoredProcedure, commandTimeout: (int)_defaultTimeout.TotalSeconds);
         if (mapItems == null) return null;
 
         IDictionary<string, object> data = new Dictionary<string, object>();
         foreach (var item in mapItems)
         {
-            if (item.DataRetriveType == DataRetriveType.FirstOrDefault)
+            if (item.Category == TransformCategory.Single)
             {
-                var singleItem = multi.Read(item.Type).FirstOrDefault();
-                data.Add(item.PropertyName, singleItem);
+                var singleItem = result.Read(item.Type).FirstOrDefault();
+                data.Add(item.Name, singleItem);
             }
 
-            if (item.DataRetriveType == DataRetriveType.List)
+            if (item.Category == TransformCategory.List)
             {
-                var listItem = multi.Read(item.Type).ToList();
-                data.Add(item.PropertyName, listItem);
+                var listItem = result.Read(item.Type).ToList();
+                data.Add(item.Name, listItem);
             }
         }
         return data;
