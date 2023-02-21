@@ -4,7 +4,9 @@ namespace stackoverflow.core;
 
 public interface IDbQueryRepository
 {
-    Task<List<TResult>> QueryAsync<TResult>(string spName, object parameters = null, CommandType? commandType = null);
+    Task ExecuteAsync(string queryOrSpName, object parameters = null, CommandType? commandType = CommandType.Text);
 
-    Task<IDictionary<string, object>> QueryAsync(string spName, object parameters = null, IEnumerable<OutputResultTranform> mapItems = null);
+    Task<List<TResult>> QueryAsync<TResult>(string queryOrSpName, object parameters = null, CommandType? commandType = null);
+
+    Task<IDictionary<string, object>> QueryAsync(string queryOrSpName, object parameters = null, CommandType? commandType = CommandType.StoredProcedure, IEnumerable<OutputResultTranform> mapItems = null);
 }

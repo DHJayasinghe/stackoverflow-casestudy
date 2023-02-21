@@ -13,16 +13,22 @@ public sealed class DbQueryRepository : IDbQueryRepository, IDisposable
     public DbQueryRepository(string connectionString) =>
         _connectionString = connectionString ?? throw new ArgumentException("Connection string is not specified");
 
+    public async Task ExecuteAsync(string queryOrSpName, object parameters = null, CommandType? commandType = CommandType.Text)
+    {
+        using IDbConnection conn = Connection;
+        await conn.QueryAsync(queryOrSpName, parameters, commandType: commandType, commandTimeout: (int)_defaultTimeout.TotalSeconds);
+    }
+
     public async Task<List<TResult>> QueryAsync<TResult>(string queryOrSpName, object parameters = null, CommandType? commandType = null)
     {
         using IDbConnection conn = Connection;
         return (await conn.QueryAsync<TResult>(queryOrSpName, parameters, commandType: commandType, commandTimeout: (int)_defaultTimeout.TotalSeconds)).ToList();
     }
 
-    public async Task<IDictionary<string, object>> QueryAsync(string spName, object param = null, IEnumerable<OutputResultTranform> mapItems = null)
+    public async Task<IDictionary<string, object>> QueryAsync(string queryOrSpName, object parameters = null, CommandType? commandType = CommandType.StoredProcedure, IEnumerable<OutputResultTranform> mapItems = null)
     {
         using IDbConnection conn = Connection;
-        var result = await conn.QueryMultipleAsync(spName, param, commandType: CommandType.StoredProcedure, commandTimeout: (int)_defaultTimeout.TotalSeconds);
+        var result = await conn.QueryMultipleAsync(queryOrSpName, parameters, commandType: commandType, commandTimeout: (int)_defaultTimeout.TotalSeconds);
         if (mapItems == null) return null;
 
         IDictionary<string, object> data = new Dictionary<string, object>();

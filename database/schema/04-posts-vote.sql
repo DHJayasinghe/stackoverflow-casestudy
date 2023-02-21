@@ -1,4 +1,4 @@
-CREATE OR ALTER PROCEDURE sp_posts_vote(
+CREATE OR ALTER PROCEDURE [dbo].[sp_posts_vote](
 	@Id int,
 	@VoteTypeId int,
 	@UserId int
@@ -10,7 +10,7 @@ BEGIN
 	DECLARE @noOfChanges INT = 0
 
 	BEGIN TRY
-		BEGIN TRANSACTION VotePostTransaction
+		BEGIN TRANSACTION
 
 		SELECT 
 			@existingVoteId=Id,
@@ -42,19 +42,21 @@ BEGIN
 			SET @noOfChanges=@@ROWCOUNT
 		END
 
+		declare @score int
+
+		SELECT @score=SUM(CASE VoteTypeId WHEN 2 THEN 1 ELSE -1 END) FROM dbo.Votes WHERE PostId=@id AND VoteTypeId IN (2,3)
+
 		IF @noOfChanges > 0 -- Here we found an update/insert, so we update the Posts table score 
 		BEGIN
 			UPDATE dbo.Posts SET 
-				Score=Score+ (CASE @VoteTypeId WHEN 3 THEN -1 WHEN 2 THEN 1 ELSE 0 END),
+				Score=@score,
 				LastActivityDate=GETUTCDATE()
 			WHERE Id=@Id
 		END
 
-		COMMIT TRANSACTION VotePostTransaction
+		COMMIT
 	END TRY
 	BEGIN CATCH
-		ROLLBACK TRANSACTION VotePostTransaction
+		ROLLBACK
 	END CATCH
-
-	SELECT @noOfChanges
 END

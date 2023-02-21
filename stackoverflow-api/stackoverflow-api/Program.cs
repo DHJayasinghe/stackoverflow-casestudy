@@ -17,7 +17,6 @@ app.UseHttpsRedirection();
 app.MapPost("/authorize", AccountOperations.AuthorizeAsync).Produces<IResult>();
 app.MapGet("/posts", PostOperations.GetPostsAsync).Produces<PaginationResult<Post>>();
 app.MapPost("/posts/{postId:int}/vote/{voteTypeId:int}", PostOperations.VotePostAsync).Produces<IResult>();
-app.MapGet("/posts/{postId:int}/score", PostOperations.GetPostScoreAsync).Produces<int>();
 
 app.Run();
 

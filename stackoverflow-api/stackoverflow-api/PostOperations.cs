@@ -20,10 +20,13 @@ public sealed class PostOperations
             @Start = start,
             @PageSize = pageSize
         };
-        var result = await dbQueryRepo.QueryAsync("dbo.sp_posts_search", query_params, new List<OutputResultTranform> {
-        new OutputResultTranform(typeof(Post), TransformCategory.List, "Questions"),
-        new OutputResultTranform(typeof(int), TransformCategory.Single, "TotalRecords"),
-    });
+        var result = await dbQueryRepo.QueryAsync("dbo.sp_posts_search",
+            parameters: query_params,
+            commandType: System.Data.CommandType.StoredProcedure,
+            mapItems: new List<OutputResultTranform> {
+                new OutputResultTranform(typeof(Post), TransformCategory.List, "Questions"),
+                new OutputResultTranform(typeof(int), TransformCategory.Single, "TotalRecords"),
+        });
 
         return new PaginationResult<Post>()
         {
@@ -47,19 +50,8 @@ public sealed class PostOperations
             @VoteTypeId = voteTypeId,
             @UserId = currentUser.Id
         };
-        var result = await dbQueryRepo.QueryAsync("dbo.sp_posts_vote", query_params, new List<OutputResultTranform> {
-        new OutputResultTranform(typeof(int), TransformCategory.Single, "NoOfChanges")
-    });
+        await dbQueryRepo.ExecuteAsync("dbo.sp_posts_vote", parameters: query_params, commandType: System.Data.CommandType.StoredProcedure);
 
         return Results.Ok();
-    }
-
-    internal static async Task<int> GetPostScoreAsync(
-        IDbQueryRepository dbQueryRepo,
-        int postId
-    )
-    {
-        var result = await dbQueryRepo.QueryAsync<int>($"SELECT Score FROM dbo.Posts WHERE Id={postId}", commandType: System.Data.CommandType.Text);
-        return result.First();
     }
 }
