@@ -28,28 +28,26 @@ public class DatabaseConcurrencyTest
         });
     }
 
-    private async Task ResetVoteMadeByUsersAsync(int postId, string[] displayNames)
+    private async Task ResetVoteMadeByUsersAsync(int postId, int[] userIds)
     {
         using var scope = _factory.Services.GetService<IServiceScopeFactory>().CreateScope();
         var queryRepo = scope.ServiceProvider.GetRequiredService<IDbQueryRepository>();
         await queryRepo.ExecuteAsync(@"UPDATE V SET 
                         V.VoteTypeId = 3
-                    FROM dbo.Votes V INNER JOIN dbo.Users U
-                    ON V.UserId = U.Id AND V.VoteTypeId = 2
-                    WHERE V.PostId = @postId AND U.[DisplayName] IN @displayNames",
+                    FROM dbo.Votes V
+                    WHERE V.VoteTypeId = 2 AND V.PostId = @postId AND V.[UserId] IN @userIds",
                 commandType: System.Data.CommandType.Text,
-                parameters: new { postId = postId, displayNames = displayNames });
+                parameters: new { postId = postId, userIds = userIds });
     }
 
-    private async Task RemoveVoteMadeByUsersAsync(int postId, string[] displayNames)
+    private async Task RemoveVoteMadeByUsersAsync(int postId, int[] userIds)
     {
         using var scope = _factory.Services.GetService<IServiceScopeFactory>().CreateScope();
         var queryRepo = scope.ServiceProvider.GetRequiredService<IDbQueryRepository>();
-        await queryRepo.ExecuteAsync(@"DELETE V FROM dbo.Votes V INNER JOIN dbo.Users U
-                    ON V.UserId = U.Id AND V.VoteTypeId = 2
-                    WHERE V.PostId = @postId AND U.[DisplayName] IN @displayNames",
+        await queryRepo.ExecuteAsync(@"DELETE V FROM dbo.Votes V
+                    WHERE V.VoteTypeId = 2 AND V.PostId = @postId AND V.[UserId] IN @userIds",
                 commandType: System.Data.CommandType.Text,
-                parameters: new { postId = postId, displayNames = displayNames });
+                parameters: new { postId = postId, userIds = userIds });
     }
 
     private async Task<int> GetActualScoreOfPostAsync(int id)
@@ -63,13 +61,31 @@ public class DatabaseConcurrencyTest
         return (int)result["Score"];
     }
 
-    private async Task<int> GetVoteCountOnPostByUserAsync(int id, string userDisplayName)
+    private async Task<bool> PostVoteAsync(int postId, int voteTypeId, int userId)
+    {
+        try
+        {
+            using var scope = _factory.Services.GetService<IServiceScopeFactory>().CreateScope();
+            var queryRepo = scope.ServiceProvider.GetRequiredService<IDbQueryRepository>();
+            var query_params = new
+            {
+                @Id = postId,
+                @VoteTypeId = voteTypeId,
+                @UserId = userId
+            };
+            await queryRepo.ExecuteAsync("dbo.sp_posts_vote", parameters: query_params, commandType: System.Data.CommandType.StoredProcedure);
+            return true;
+        }
+        catch (Exception) { return false; }
+    }
+
+    private async Task<int> GetVoteCountOnPostByUserAsync(int id, int userId)
     {
         using var scope = _factory.Services.GetService<IServiceScopeFactory>().CreateScope();
         var queryRepo = scope.ServiceProvider.GetRequiredService<IDbQueryRepository>();
-        var result = await queryRepo.QueryAsync(@$"SELECT COUNT(1) FROM dbo.Votes V INNER JOIN dbo.Users U ON V.UserId=U.Id 
-                WHERE PostId=@id AND VoteTypeId IN (2,3) AND U.DisplayName = @userDisplayName",
-            parameters: new { id, userDisplayName },
+        var result = await queryRepo.QueryAsync(@$"SELECT COUNT(1) FROM dbo.Votes V 
+                WHERE PostId=@id AND VoteTypeId IN (2,3) AND UserId = @userId",
+            parameters: new { id, userId },
             commandType: System.Data.CommandType.Text,
             mapItems: new List<OutputResultTranform> { new OutputResultTranform(typeof(int), TransformCategory.Single, "Vote"),
         });
@@ -91,43 +107,38 @@ public class DatabaseConcurrencyTest
     public async Task Should_HaveCorrectScore_When_MultipleUsersConcurrentyChangeTheirVoteOnSamePost()
     {
         const int postId = 4175774;
-        string UpVoteRequestUri = $"/posts/{postId}/vote/2";
-        var selectedUsersDisplayNames = new[] { "Jeff Atwood", "Geoff Dalgas" };
-        await ResetVoteMadeByUsersAsync(postId, selectedUsersDisplayNames);
+        const int voteTypeId = 2;
+        var selectedUserIds = new[] { 1, 2 };
+        await ResetVoteMadeByUsersAsync(postId, selectedUserIds);
 
-        var upVotingTasks = await DoConcurrentUpVotingRequests(UpVoteRequestUri, selectedUsersDisplayNames);
+        var upVotingTasks = await DoConcurrentUpVotingRequests(postId, voteTypeId, selectedUserIds);
         var recordedScore = await GetRecordedScoreOfPostAsync(postId);
         var actualScore = await GetActualScoreOfPostAsync(postId);
 
-        upVotingTasks.Should().AllSatisfy(response => response.Result.IsSuccessStatusCode.Should().BeTrue());
+        upVotingTasks.Should().AllSatisfy(response => response.Should().BeTrue());
         recordedScore.Should().Be(actualScore);
     }
-
 
     [TestMethod]
     public async Task Should_HaveSingleVotePerUser_When_UserDoConcurrentVotingOnSamePost()
     {
         const int postId = 4175774;
-        string UpVoteRequestUri = $"/posts/{postId}/vote/2";
-        var selectedUsersDisplayNames = new[] { "Jarrod Dixon", "Jarrod Dixon" };
-        await RemoveVoteMadeByUsersAsync(postId, selectedUsersDisplayNames);
+        const int voteTypeId = 2;
+        var selectedUserIds = new[] { 3, 4 };
+        await RemoveVoteMadeByUsersAsync(postId, selectedUserIds);
 
-        var votesCountBefore = await GetVoteCountOnPostByUserAsync(postId, selectedUsersDisplayNames[0]);
-        var upVotingTasks = await DoConcurrentUpVotingRequests(UpVoteRequestUri, selectedUsersDisplayNames);
-        var votesCountAfter = await GetVoteCountOnPostByUserAsync(postId, selectedUsersDisplayNames[0]);
+        var votesCountBefore = await GetVoteCountOnPostByUserAsync(postId, selectedUserIds[0]);
+        var upVotingTasks = await DoConcurrentUpVotingRequests(postId, voteTypeId, selectedUserIds);
+        var votesCountAfter = await GetVoteCountOnPostByUserAsync(postId, selectedUserIds[0]);
 
-        upVotingTasks.Should().AllSatisfy(response => response.Result.IsSuccessStatusCode.Should().BeTrue());
+        upVotingTasks.Should().AllSatisfy(response => response.Should().BeTrue());
         votesCountBefore.Should().Be(0);
         votesCountAfter.Should().Be(1);
     }
 
-    private async Task<IEnumerable<Task<HttpResponseMessage>>> DoConcurrentUpVotingRequests(string UpVoteRequestUri, string[] usersDisplayNames)
+    private async Task<IEnumerable<bool>> DoConcurrentUpVotingRequests(int postId, int voteTypeId, int[] userIds)
     {
-        var upVotingTasks = (await Task.WhenAll(usersDisplayNames
-                    .Select(async userDisplayName => await CreateUniqueUserSessionAsync(userDisplayName))))
-                    .Select(userHttpClient => userHttpClient.PostAsync(UpVoteRequestUri, null));
-
-        await Task.WhenAll(upVotingTasks);
+        var upVotingTasks = (await Task.WhenAll(userIds.Select(userId => PostVoteAsync(postId, voteTypeId, userId))));
         return upVotingTasks;
     }
 
