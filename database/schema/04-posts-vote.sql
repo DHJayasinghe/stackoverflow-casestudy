@@ -1,4 +1,4 @@
-CREATE OR ALTER PROCEDURE [dbo].[sp_posts_vote](
+CREATE OR ALTER   PROCEDURE [dbo].[sp_posts_vote](
 	@Id int,
 	@VoteTypeId int,
 	@UserId int
@@ -16,7 +16,7 @@ BEGIN
 		SELECT 
 			@existingVoteId=Id,
 			@existingVoteTypeId=VoteTypeId 
-		FROM dbo.Votes 
+		FROM dbo.Votes WITH (REPEATABLEREAD)
 		WHERE PostId=@Id 
 			AND UserId=@UserId 
 			AND VoteTypeId IN (2,3) 
@@ -37,7 +37,7 @@ BEGIN
 			UPDATE dbo.Votes SET 
 				VoteTypeId=@VoteTypeId,
 				CreationDate=GETUTCDATE()
-			WHERE Id=@existingVoteId
+			WHERE Id = @existingVoteId
 
 			SET @noOfChanges=@@ROWCOUNT
 		END
