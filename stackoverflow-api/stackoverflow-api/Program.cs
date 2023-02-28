@@ -1,43 +1,26 @@
 using stackoverflow.api;
 using stackoverflow.core;
+using stackoverflow_api;
 
 var builder = WebApplication.CreateBuilder(args);
 var configurations = builder.Configuration;
 
 builder.Services
-    .AddTransient<IDbQueryRepository>(d => new DbQueryRepository(configurations.GetConnectionString("Default")));
+    .AddTransient<IDbQueryRepository>(d => new DbQueryRepository(configurations.GetConnectionString("Default")))
+    .AddTransient<ICurrentUser, CurrentUser>()
+    .AddHttpContextAccessor();
 
 var app = builder.Build();
 
 app.UseHttpsRedirection();
 
-app.MapGet("/questions", GetQuestionsAsync).Produces<PaginationResult<Question>>();
-
-static async Task<PaginationResult<Question>> GetQuestionsAsync(
-    IDbQueryRepository dbQueryRepo,
-    string searchTerm = null,
-    int pageSize = 15,
-    int start = 0,
-    SearchType searchType = SearchType.NEWEST
-)
-{
-    var query_params = new
-    {
-        @Tags = searchTerm,
-        @SearchType = searchType.ToString(),
-        @Start = start,
-        @PageSize = pageSize
-    };
-    var result = await dbQueryRepo.QueryAsync("dbo.sp_posts_search", query_params, new List<OutputResultTranform> {
-        new OutputResultTranform(typeof(Question), TransformCategory.List, "Questions"),
-        new OutputResultTranform(typeof(int), TransformCategory.Single, "TotalRecords"),
-    });
-
-    return new PaginationResult<Question>()
-    {
-        Data = ((List<object>)result["Questions"]).ConvertAll(item => (Question)item),
-        TotalRecords = (int)result["TotalRecords"]
-    };
-}
+app.MapPost("/authorize", AccountOperations.AuthorizeAsync).Produces<IResult>();
+app.MapGet("/posts", PostOperations.GetPostsAsync).Produces<PaginationResult<Post>>();
+app.MapPost("/posts/{postId:int}/vote/{voteTypeId:int}", PostOperations.VotePostAsync).Produces<IResult>();
 
 app.Run();
+
+public partial class Program
+{
+    public const string ENCRYPYION_KEY = "b14ca5898a4e4133bbce2ea2315a1916";
+}

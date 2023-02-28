@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "stackoverflow-api", "stacko
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "stackoverflow.core", "stackoverflow.core\stackoverflow.core.csproj", "{0D08940E-F6A6-4333-9022-5E0EEA62E2A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "stackoverflow-integration-test", "stackoverflow-integration-test\stackoverflow-integration-test.csproj", "{3FBC877A-E6D3-4330-A91E-4758F19CC89B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0D08940E-F6A6-4333-9022-5E0EEA62E2A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D08940E-F6A6-4333-9022-5E0EEA62E2A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D08940E-F6A6-4333-9022-5E0EEA62E2A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FBC877A-E6D3-4330-A91E-4758F19CC89B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FBC877A-E6D3-4330-A91E-4758F19CC89B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FBC877A-E6D3-4330-A91E-4758F19CC89B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FBC877A-E6D3-4330-A91E-4758F19CC89B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

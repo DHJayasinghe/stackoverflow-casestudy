@@ -1,6 +1,6 @@
 ﻿namespace stackoverflow.api;
 
-internal record Question
+internal record Post
 {
     public int Id { get; init; }
     public string Title { get; init; }
